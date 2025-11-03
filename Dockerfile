@@ -40,8 +40,6 @@ RUN apt-get update -y \
   xauth \
   ffmpeg \
   nginx \
-  apache2 \
-  libapache2-mod-wsgi-py3 \
   gnupg \
   gpg \ 
   jq \
@@ -71,51 +69,27 @@ RUN apt-get update -y \
   libsecret-1-0 \
   libhyphen0 \
   libmanette-0.2-0 \
-  libgles2 \
-  redis-server \
-  postgresql-common \
-  postgresql-16-pgvector \
-  mkcert \
-  ruby \
-  rubygems-integration
+  libgles2
 
 RUN update-ca-certificates
-
-# Install Chromium browser from Debian repos (has ARM64 support)
-RUN mkdir -p /etc/apt/keyrings && \
-    wget -q -O /etc/apt/keyrings/debian-archive-key.asc https://ftp-master.debian.org/keys/archive-key-12.asc && \
-    echo 'deb [signed-by=/etc/apt/keyrings/debian-archive-key.asc] http://deb.debian.org/debian bookworm main' > /etc/apt/sources.list.d/debian.list && \
-    apt-get update && \
-    apt-get install -y chromium chromium-driver && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# disable sandboxing for chromium (won't run in docker)
-RUN echo "export CHROMIUM_FLAGS=--no-sandbox" >> /etc/chromium.d/default-flags
-# disable dns over https (so we can mock websites)
-RUN mkdir -p /etc/chromium/policies/managed
-# note that this is edited during startup to append insecure sites as secure
-RUN echo '{ "DnsOverHttpsMode": "off", "DefaultPopupsSetting": 1, "SafeBrowsingProtectionLevel": 1 }' > /etc/chromium/policies/managed/policy.json
-
-# install fakes3
-RUN gem install fakes3 -v 0.2.5
 
 WORKDIR /
 
 # Install nvm for ubuntu user
 USER ubuntu
 ENV HOME=/home/ubuntu
-ENV NVM_DIR=/home/ubuntu/.nvm
 
 # configure git
 RUN git config --global user.email "agent@example.com"
 RUN git config --global user.name "mr agent"
 
-# Install latest nvm (v0.39.7)
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-
 # install elan
-RUN curl https://elan.lean-lang.org/elan-init.sh -sSf | sh
+RUN curl https://elan.lean-lang.org/elan-init.sh -sSf > /tmp/elan-init.sh && \
+    chmod +x /tmp/elan-init.sh && \
+    /tmp/elan-init.sh -y && \
+    rm /tmp/elan-init.sh
+ENV PATH="/home/ubuntu/.elan/bin:$PATH"
+RUN echo "PATH=/home/ubuntu/.elan/bin:$PATH" >> /home/ubuntu/.bash_profile
 
 # ========================= PROJECT SETUP =========================
 # CUSTOMIZE THIS SECTION FOR YOUR PROJECT
@@ -134,9 +108,9 @@ RUN curl https://elan.lean-lang.org/elan-init.sh -sSf | sh
 #     GITHUB_TOKEN=$(echo "$GITHUB_TOKEN_BASE64" | base64 -d); \
 #     git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/your-org/your-repo /home/ubuntu/[PROJECT_NAME]
 # Example for public repo:
-RUN git clone https://github.com/hud-evals/example-lean-project /home/ubuntu/example-lean-project
+RUN git clone https://github.com/hud-evals/example-lean-codebase /home/ubuntu/example-lean-codebase
 
-WORKDIR /home/ubuntu/example-lean-project
+WORKDIR /home/ubuntu/example-lean-codebase
 
 # Checkout branches for testing (baseline, test, golden)
 ARG TEST_BRANCH
@@ -157,97 +131,8 @@ USER ubuntu
 # Overwrite git history to avoid leaking info
 RUN rm -rf .git && git init && git add . && git commit -m "Initial commit"
 
-# 1) Install language runtime/compiler
-# === FOR NODE.JS/TYPESCRIPT (example) ===
-# RUN NODE_VERSION_SPEC=$(jq -r '.engines.node // ""' /home/ubuntu/[PROJECT_NAME]/package.json) && \
-#     NODE_VERSION=$(printf "%s" "$NODE_VERSION_SPEC" | grep -oE '<= *[0-9]+' | tail -n1 | sed -E 's/^[^0-9]*//') && \
-#     if [ -z "$NODE_VERSION" ]; then NODE_VERSION=$(printf "%s" "$NODE_VERSION_SPEC" | grep -oE '[0-9]+' | tail -n1); fi && \
-#     bash -c "source ~/.nvm/nvm.sh --no-use && nvm install $NODE_VERSION && nvm use $NODE_VERSION && nvm alias default $NODE_VERSION" && \
-#     echo "source ~/.nvm/nvm.sh" >> /home/ubuntu/.bash_profile
-# SHELL ["/bin/bash", "--login", "-c"]
-#
-# === FOR PYTHON ===
-# RUN python3 -m pip install --upgrade pip
-#
-# === FOR JAVA ===
-# RUN apt-get install -y openjdk-[version]-jdk maven
-#
-# === FOR C++ ===
-# Already installed: gcc, g++, cmake via build-essential
-#
-# === FOR RUST ===
-# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-
-# 2) Install build tool / package manager
-# === FOR NODE.JS ===
-# RUN YARN_VERSION=[version] && \
-#     YARN_MAJOR=$(echo $YARN_VERSION | cut -d. -f1) && \
-#     bash -lc "if [ \"$YARN_MAJOR\" -ge 2 ]; then \
-#         corepack enable && corepack prepare yarn@$YARN_VERSION --activate; \
-#     else \
-#         npm install -g yarn@$YARN_VERSION; \
-#     fi"
-#
-# === FOR PYTHON ===
-# RUN pip install poetry  # or: pipenv, pip-tools
-#
-# === FOR JAVA ===
-# Already installed: maven or gradle
-#
-# === FOR RUST ===
-# Already installed with rustup
-
-# 3) Install dependencies
-# RUN cd /home/ubuntu/[PROJECT_NAME] && [INSTALL_DEPENDENCIES_COMMAND]
-# Examples:
-#   Node.js: yarn install
-#   Python: pip install -r requirements.txt  or  poetry install
-#   Java: mvn dependency:resolve
-#   Rust: cargo fetch
-#   C++: (usually handled by build system)
-
-# 4) Configure test framework for JUnit XML output
-# The grading system requires JUnit XML format for test results.
-# Configure your test framework to output JUnit XML.
-#
-# === FOR JEST (Node.js) ===
-# RUN cd /home/ubuntu/[PROJECT_NAME] && \
-#     yarn add jest-junit && \
-#     jq '.reporters = ["default", ["jest-junit", {"outputDirectory": "./", "outputName": "jest_results.xml"}]]' .jestconfig.json > .jestconfig.tmp && \
-#     mv .jestconfig.tmp .jestconfig.json
-#
-# === FOR PYTEST (Python) ===
-# RUN pip install pytest-junit && \
-#     echo "[tool.pytest.ini_options]" >> pyproject.toml && \
-#     echo "junit_family = 'xunit2'" >> pyproject.toml
-#
-# === FOR JUNIT (Java) ===
-# Add to pom.xml or build.gradle:
-#   <plugin>
-#     <artifactId>maven-surefire-plugin</artifactId>
-#     <configuration>
-#       <reportsDirectory>./junit-results</reportsDirectory>
-#     </configuration>
-#   </plugin>
-#
-# === FOR GTEST (C++) ===
-# Use gtest_junit_output: --gtest_output=xml:test_results.xml
-
-# 5) Build the project
-# RUN cd /home/ubuntu/[PROJECT_NAME] && [BUILD_COMMAND]
-# Examples:
-#   Node.js: yarn build  or  npm run build
-#   Python: (often no build step)  or  python setup.py build
-#   Java: mvn package -DskipTests
-#   Rust: cargo build --release
-#   C++: mkdir build && cd build && cmake .. && make
-
-# 6) Configure environment files
-# Copy and customize your environment configuration
-COPY build_scripts/ /build_scripts/
-RUN python3 /build_scripts/alter_env_files.py
-
-# === End of PROJECT SETUP section ===
+# build the project
+RUN lake exe cache get && lake build
 
 # Set environment variables
 ENV HOME=/home/ubuntu \
@@ -262,19 +147,9 @@ EXPOSE 6080
 ENV NO_AT_BRIDGE=1
 USER root
 
-# allow any user to run mkcert by inserting a script that calls sudo mkcert
-RUN mv /usr/bin/mkcert /usr/bin/mkcert2 && \
-    echo '#!/bin/bash\nexec sudo mkcert2 "$@"' > /usr/bin/mkcert && \
-    chmod +x /usr/bin/mkcert
-# add a line to sudoers file so that any user can run mkcert2 with sudo
-RUN echo "ubuntu ALL=(ALL) NOPASSWD: /usr/bin/mkcert2" >> /etc/sudoers
-
 # Setup and start dinit
 COPY dinit.d/ /etc/dinit.d/
 RUN mkdir -p /var/log/dinit && chmod 755 /var/log/dinit
-
-# Copy postgres init scripts (SQL and shell)
-COPY docker-entrypoint-initdb.d/ /docker-entrypoint-initdb.d/
 
 # Postgres config:
 ENV POSTGRES_USER=ubuntu

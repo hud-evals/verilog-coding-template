@@ -3,7 +3,7 @@ name = "hud-controller"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "fastmcp>=0.3.0",
     "mcp[cli]>=1.10.1",
@@ -19,6 +19,7 @@ dependencies = [
     "imageio>=2.31.0",
     "pytest>=8.4.0",
     "packaging>=21.0",
+    "defusedxml>=0.7.1",
 ]
 
 [project.optional-dependencies]
@@ -28,13 +29,15 @@ dev = ["pytest>=7.0.0", "ruff==0.11.2", "pre-commit>=3.5.0"]
 hud_eval = "hud_controller.app:main"
 setup_problem = "hud_controller.app:setup_problem_script"
 grade_problem = "hud_controller.app:grade_problem_script"
+validate_problem = "hud_controller.app:validate_problem_script"
+
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 120
 
 [tool.ruff.lint]

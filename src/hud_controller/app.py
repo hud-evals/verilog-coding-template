@@ -8,12 +8,12 @@ from mcp.types import ImageContent, TextContent  # type: ignore
 from pydantic import Field
 
 import hud_controller.extractors
+from hud_controller.grading_runner import GradingRunner
 from hud_controller.utils import import_submodules
 
-from .setup import setup_codebase, start_dinit
+from .setup import start_dinit
 from .spec import PROBLEM_REGISTRY, EnvironmentState, Grade, ProblemSpec
 from .tools.base import ToolResult
-from .tools.computer import Action
 
 logger = logging.getLogger(__name__)
 
@@ -139,10 +139,6 @@ async def setup_problem(
 
     # Start the dinit services
     await start_dinit()
-    logger.info(f"=== Starting setup_problem for {problem_id} ===")
-    logger.info(f"spec: {spec}")
-    setup_codebase(spec.base, spec.test, spec.golden)
-
     # create the full statement
     return spec_to_statement(spec)
 
@@ -164,10 +160,21 @@ async def grade_problem(
     """Check your solution for grading. Returns a Grade object making sure to include all components that make up the score as subscores."""
 
     spec = _get_spec(problem_id)
-    # invoke the solution function to get a Grade
-    state = EnvironmentState()
-    print(f"state: {state}")
-    return spec.solution_fn(state)
+    runner = GradingRunner(
+        base=spec.base,
+        test=spec.test,
+        golden=spec.golden,
+    )
+
+    success, result = runner.run_grading()
+
+    if success:
+        logger.info("Grading successful!")
+    else:
+        logger.error("Grading failed!")
+
+    return result
+
 
 @click.command()
 @click.argument("problem_id", envvar="PROBLEM_ID")
@@ -175,7 +182,6 @@ async def grade_problem(
 @click.option("--output_path", default="/tmp/grade_junit.xml", help="Path to output the JUNIT XML file")
 def grade_problem_script(
     problem_id: str,
-    only_server: bool = False,
     output_path: str = None,
 ):
     """Grade a problem solution and return the grade results."""
@@ -185,6 +191,60 @@ def grade_problem_script(
         f.write(grade.metadata["AgentPatchGrader"]["junit"])
     print(grade)
 
+
+
+async def validate_problem(problem_id: str) -> tuple[bool, dict[str, any]]:
+    """Validate the test and golden patches for a problem."""
+
+    # Get the problem specification
+    spec = _get_spec(problem_id)
+
+    # Check if required branch/commit info is available
+    if not spec.base:
+        raise ValueError(f"Problem {problem_id} missing base branch/commit")
+    if not spec.test:
+        raise ValueError(f"Problem {problem_id} missing test branch/commit")
+    if not spec.golden:
+        raise ValueError(f"Problem {problem_id} missing golden branch/commit")
+
+    logger.info("=== VALIDATE_PROBLEM DEBUG ===")
+    logger.info(f"Problem ID: {problem_id}")
+    logger.info(f"Base: {spec.base}")
+    logger.info(f"Test: {spec.test}")
+    logger.info(f"Golden: {spec.golden}")
+
+    # Create grading runner with the problem's branch/commit info
+    runner = GradingRunner(
+        base=spec.base,
+        test=spec.test,
+        golden=spec.golden,
+    )
+
+    success, result = runner.validate_patches()
+
+    if success:
+        logger.info("Validation successful!")
+    else:
+        logger.error("Validation failed!")
+
+    # Print the JUnit XML result if available
+    if "junit" in result:
+        print("\nJUnit XML Result:")
+        print(result["junit"])
+
+    return success, result
+
+
+
+@click.command()
+@click.argument("problem_id", envvar="PROBLEM_ID")
+@click.option("--output_path", default="/tmp/validate_junit.xml", help="Path to output the JUNIT XML file")
+def validate_problem_script(
+    problem_id: str,
+    output_path: str = None,
+):
+    """Validate a problem solution and return the validation results."""
+    asyncio.run(validate_problem(problem_id))
 
 @click.command()
 def main():
