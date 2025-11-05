@@ -91,7 +91,8 @@ template = """
 You will be working on a task for example-verilog-codebase.
 The repository has already been cloned in the environment in /home/ubuntu/example-verilog-codebase.
 Iverilog and Verilator have been installed.
-
+Do not change any of the inpute or output ports of the modules.
+Do not change any files outside of the source/ directory.
 Use the tools provided to complete the following task:
 
 <STATEMENT>
