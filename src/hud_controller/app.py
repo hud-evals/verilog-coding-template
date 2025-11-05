@@ -159,6 +159,7 @@ async def grade_problem(
         base=spec.base,
         test=spec.test,
         golden=spec.golden,
+        test_files=spec.test_files,
     )
 
     success, result = runner.run_grading()
@@ -213,12 +214,14 @@ async def validate_problem(problem_id: str) -> tuple[bool, dict[str, any]]:
     logger.info(f"Base: {spec.base}")
     logger.info(f"Test: {spec.test}")
     logger.info(f"Golden: {spec.golden}")
+    logger.info(f"Test files: {spec.test_files}")
 
     # Create grading runner with the problem's branch/commit info
     runner = GradingRunner(
         base=spec.base,
         test=spec.test,
         golden=spec.golden,
+        test_files=spec.test_files,
     )
 
     success, result = runner.validate_patches()

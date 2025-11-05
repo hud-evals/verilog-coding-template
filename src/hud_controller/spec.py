@@ -55,6 +55,7 @@ class ProblemSpec:
     base: str
     test: str
     golden: str
+    test_files: list[str]
     # optional fields (with defaults)
     hints: list[HintSpec] = field(default_factory=list)
     difficulty: str = "easy"

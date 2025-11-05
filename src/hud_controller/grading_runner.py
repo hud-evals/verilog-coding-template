@@ -29,6 +29,7 @@ class GradingRunner:
         base: str,
         test: str,
         golden: str,
+        test_files: list[str],
     ):
         """
         Initialize the grading runner.
@@ -46,6 +47,7 @@ class GradingRunner:
         self.test_patch_path = "/home/root/test.patch"
         self.golden_patch_path = "/home/root/golden.patch"
         self.grade_working_dir = "/tmp/grading_workspace_" + str(uuid.uuid4())
+        self.test_files = test_files
 
     def _format_junit_xml(self, test_name: str, failure_message: str | None = None, stdout: str = "", stderr: str = "") -> str:
         return f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -90,7 +92,7 @@ class GradingRunner:
         return ["uv", "sync"]
 
     def _get_test_command(self) -> list[str]:
-        return ["uv", "run", "pytest"]
+        return ["uv", "run", "pytest", *self.test_files]
 
 
     def run_grading(self) -> tuple[bool, dict]:
@@ -228,6 +230,9 @@ class GradingRunner:
         logger.info(f"Resetting repo to baseline in {self.grade_working_dir}")
         subprocess.run(
             ["sudo", "-u", "ubuntu", "git", "reset", "--hard"], cwd=self.grade_working_dir, check=True
+        )
+        subprocess.run(
+            ["sudo", "-u", "ubuntu", "git", "clean", "-fd"], cwd=self.grade_working_dir, check=True
         )
         logger.info("Reset repo to baseline successfully")
 

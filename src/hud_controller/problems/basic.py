@@ -23,5 +23,6 @@ counter - 8-bit counter value
         base="simple_counter_baseline",
         test="simple_counter_test",
         golden="simple_counter_golden",
+        test_files=["tests/test_simple_counter_hidden.py"],
     )
 )
