@@ -42,7 +42,7 @@ class GradingRunner:
         self.use_base = base
         self.use_test = test
         self.use_golden = golden
-        self.original_repo_path = "/home/ubuntu/example-lean-codebase"
+        self.original_repo_path = "/home/ubuntu/example-verilog-codebase"
         self.test_patch_path = "/home/root/test.patch"
         self.golden_patch_path = "/home/root/golden.patch"
         self.grade_working_dir = "/tmp/grading_workspace_" + str(uuid.uuid4())

@@ -7,11 +7,21 @@ logger = logging.getLogger(__name__)
 
 PROBLEM_REGISTRY.append(
     ProblemSpec(
-        id="greet_len",
-        description="Please complete the function greet_length without using `sorry`.",
+        id="simple_counter",
+        description="""Please implement a simple synchronous counter that with reset, enable, and load functionality.
+Inputs:
+clk - Clock signal (triggers on rising edge)
+rst - Synchronous reset signal
+ena - Enable signal (allows counting)
+set - Load signal (sets counter to a specific value)
+din - 8-bit data input (value to load when set is high)
+Output:
+counter - 8-bit counter value        
+        
+""",
         difficulty="easy",
-        base="greet_len_baseline",
-        test="greet_len_test",
-        golden="greet_len_golden",
+        base="simple_counter_baseline",
+        test="simple_counter_test",
+        golden="simple_counter_golden",
     )
 )

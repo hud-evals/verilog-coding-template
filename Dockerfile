@@ -75,6 +75,8 @@ RUN apt-get update -y \
 
 RUN update-ca-certificates
 
+RUN pip install uv --break-system-packages
+
 WORKDIR /
 
 # Install nvm for ubuntu user
@@ -103,10 +105,10 @@ RUN git config --global user.name "mr agent"
 #     GITHUB_TOKEN=$(echo "$GITHUB_TOKEN_BASE64" | base64 -d); \
 #     git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/your-org/your-repo /home/ubuntu/[PROJECT_NAME]
 # Example for public repo:
-ENV random=random
+ENV random=random1
 RUN git clone https://github.com/hud-evals/example-verilog-codebase /home/ubuntu/example-verilog-codebase
 
-WORKDIR /home/ubuntu/example-lean-codebase
+WORKDIR /home/ubuntu/example-verilog-codebase
 
 # Checkout branches for testing (baseline, test, golden)
 ARG TEST_BRANCH
@@ -156,7 +158,6 @@ ENV POSTGRES_DB=ubuntu
 FROM setup AS runtime
 
 # prepare for the hud evals mcp server
-RUN pip install uv --break-system-packages
 
 # copy python files
 COPY ./src /mcp_server/src
