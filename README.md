@@ -138,12 +138,12 @@ uv sync
 ### Build, Validate all problems and generate Json
 
 ```bash
-uv run utils/imagectl3.py lean_ -bvj
+uv run utils/imagectl3.py verilog_ -bvj
 ```
-This will build all the docker images, with the prefix `lean_` and then run the validation workflow. 
+This will build all the docker images, with the prefix `verilog_` and then run the validation workflow. 
 Once you get a lot of problems, you'll find it helpful to do building and validation in parallel with `--jobs`:
 ```bash
-uv run utils/imagectl3.py lean_ -bvj --jobs 4
+uv run utils/imagectl3.py verilog_ -bvj --jobs 4
 ```
 
 ### Run hud eval locally
@@ -157,7 +157,7 @@ You can run them remotely too! However, you'll need to push the images. T
 To make this easier, we have the `--push` or `-p` flag in imagectl3. 
 Note that we also change the image prefix to make it pushable to docker hub.
 ```bash
-uv run utils/imagectl3.py govindhud/lean_ -bvjp --jobs 4
+uv run utils/imagectl3.py govindhud/verilog_ -bvjp --jobs 4
 ```
 Once all images are pushed, we can:
 ```
@@ -180,7 +180,7 @@ Key environment variables used by the grading system:
 
 The included `Dockerfile` sets up the complete environment:
 - Base system with required tools
-- Lean
+- verilog
 - VNC for GUI testing (if needed)
 
 
