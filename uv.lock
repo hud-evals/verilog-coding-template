@@ -1169,7 +1169,7 @@ requires-dist = [
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "fastapi", specifier = ">=0.110.0" },
     { name = "fastmcp", specifier = ">=0.3.0" },
-    { name = "hud-python", extras = ["agents"], specifier = ">=0.4.62" },
+    { name = "hud-python", extras = ["agents"], specifier = ">=0.4.66" },
     { name = "imageio", specifier = ">=2.31.0" },
     { name = "jsonschema", specifier = ">=4.21.0" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.10.1" },
@@ -1255,7 +1255,7 @@ wheels = [
 
 [[package]]
 name = "hud-python"
-version = "0.4.62"
+version = "0.4.66"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
@@ -1287,9 +1287,9 @@ dependencies = [
     { name = "watchfiles" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/94/a0/d979d1e2dac4a4b3d01ee5243c0745d5212ec8b08fc50f36a80201ebc5eb/hud_python-0.4.62.tar.gz", hash = "sha256:de560b108090d441679adac96781adae9288f6e5697cf296a62ae9ab32dd8b3b", size = 465762, upload-time = "2025-11-08T22:29:11.803Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/60/d2e6396c32ec056edb2ac9ccfda61f9ba309d1fe30119a3918e27a862fad/hud_python-0.4.66.tar.gz", hash = "sha256:67b5627f1aa24e5feeacd61a60d0e32e59bf95162cbf42bfd3930ce982a940c3", size = 472031, upload-time = "2025-11-21T04:55:26.902Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/0d/b95621e0039e2acfe6ad6ab3d0055a64e8cf9299c580e836292ec0b59635/hud_python-0.4.62-py3-none-any.whl", hash = "sha256:b866c9d0495edbd8b3c1d5c9a8be29f68335b4c615aad187ca1827f68a865b32", size = 574237, upload-time = "2025-11-08T22:29:09.901Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/77/a1cb44c679d5975dafc639ed754aa9553a72d2e9b1a1de7662e3ca7c9acc/hud_python-0.4.66-py3-none-any.whl", hash = "sha256:8aa6c5a07c6bc4363a4e148cb718ee1abd0173858976e0b9e8073024cc65bf2c", size = 581846, upload-time = "2025-11-21T04:55:24.338Z" },
 ]
 
 [package.optional-dependencies]
