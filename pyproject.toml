@@ -20,7 +20,7 @@ dependencies = [
     "pytest>=8.4.0",
     "packaging>=21.0",
     "defusedxml>=0.7.1",
-    "hud-python[agents]>=0.4.62",
+    "hud-python[agents]>=0.4.66",
 ]
 
 [project.optional-dependencies]
@@ -58,3 +58,6 @@ unfixable = []
 quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
+
+[tool.hatch.metadata]
+allow-direct-references = true

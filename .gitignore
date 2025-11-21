@@ -101,6 +101,7 @@ final_*.json
 test_problems*.json
 local-hud.json
 remote-hud.json
+problems-metadata.json
 debug_codegen.py
 
 # Verification script
@@ -114,3 +115,4 @@ test_setup.py
 !outline-codegen/run_codegen_with_qa.py
 !outline-codegen/src/*.py
 
+.hud_eval_config

@@ -103,6 +103,10 @@ class GradingRunner:
         subprocess.run(["sudo", "-u", "ubuntu", "cp", "-r", self.original_repo_path, self.grade_working_dir], check=True)
         logger.info(f"Copied original repo to {self.grade_working_dir}")
 
+        # step 1.5 get the agent patch
+        logger.info("Getting agent patch")
+        patch = subprocess.run(["sudo", "-u", "ubuntu", "git", "diff"], capture_output=True, text=True).stdout
+
         # Step 2: apply test patch
         logger.info(f"Applying test patch to {self.grade_working_dir}")
         with open(self.test_patch_path) as f:
@@ -157,12 +161,14 @@ class GradingRunner:
             # Format compile error as JUnit XML
             xml_content = self._format_junit_xml("AgentPatchCompiles", "Agent patch compilation failed", "".join(build_output), "")
             logger.info(f"Compilation failed with exit code {build_result_code}")
-            return False, {"junit": xml_content}
+            return False, {"junit": xml_content, "agent_patch": patch}
         
         logger.info(f"Compiled project successfully in {self.grade_working_dir}")
 
         # Step 4: Run tests
-        return self.run_tests()
+        result, data = self.run_tests()
+        data["agent_patch"] = patch
+        return result, data
 
     def validate_patches(self) -> tuple[bool, dict]:
         """

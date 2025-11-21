@@ -95,17 +95,7 @@ RUN git config --global user.name "mr agent"
 # =================================================================
 
 
-
-# 0) Clone or copy your project repository
-# Replace with your repo URL and credentials if needed
-# ENV GITHUB_TOKEN_BASE64=[YOUR_GITHUB_TOKEN_BASE64]
-# ENV GITHUB_USERNAME=[YOUR_GITHUB_USERNAME]
-# Example for private repo:
-# RUN cd /home/ubuntu && \
-#     GITHUB_TOKEN=$(echo "$GITHUB_TOKEN_BASE64" | base64 -d); \
-#     git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/your-org/your-repo /home/ubuntu/[PROJECT_NAME]
-# Example for public repo:
-ENV random=random5
+ENV random1=random1
 RUN git clone https://github.com/hud-evals/example-verilog-codebase /home/ubuntu/example-verilog-codebase
 
 WORKDIR /home/ubuntu/example-verilog-codebase

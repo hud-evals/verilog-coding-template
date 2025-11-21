@@ -16,7 +16,6 @@ Command = Literal[
     "create",
     "str_replace",
     "insert",
-    "undo_edit",
 ]
 SNIPPET_LINES: int = 4
 

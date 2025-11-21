@@ -246,7 +246,7 @@ def push_image(image: str) -> bool:
 def hud_dict(spec: ProcessedSpec, local: bool) -> dict:
     result = {
         "id": spec.id,
-        "prompt": spec_to_statement(spec),
+        "prompt": "",
         "setup_tool": {
             "name": "setup_problem",
             "arguments": {"problem_id": spec.id},

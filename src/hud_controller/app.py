@@ -34,10 +34,10 @@ if TEST_MODE:
     bash_tool = BashTool()
 
     @mcp.tool(
-        name="str_replace_editor",
-        description="Create and edit files using str_replace_editor.  Please use absolute paths for all file names.",
+        name="str_replace_based_edit_tool",
+        description="Create and edit files using str_replace_based_edit_tool.  Please use absolute paths for all file names.",
     )
-    async def str_replace_editor(
+    async def str_replace_based_edit_tool(
         *,
         command: Command,
         path: str,
@@ -75,7 +75,7 @@ if TEST_MODE:
         name="bash",
         description="Run bash commands. If you need to restart the bash session, set restart to true.",
     )
-    async def bash(*, command: str, restart: bool = False) -> ToolResult:
+    async def bash(*, command: str | None = None, restart: bool = False) -> ToolResult:
         return await bash_tool(
             command=command,
             restart=restart,
@@ -92,7 +92,9 @@ You will be working on a task for example-verilog-codebase.
 The repository has already been cloned in the environment in /home/ubuntu/example-verilog-codebase.
 Iverilog and Verilator have been installed.
 Do not change any of the input or output ports of the modules.
-Use the example-verilog-codebase/tests directory to write cocotb testbenches if desired. Run them with `uv run pytest`. 
+
+You should write verilog testbenches to test your code and ensure it matches the functional specification (in addition to syntactic correctness).
+
 Use the tools provided to complete the following task:
 
 <STATEMENT>
