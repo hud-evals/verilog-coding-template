@@ -251,7 +251,13 @@ def validate_problem_script(
     output_path: str = None,
 ):
     """Validate a problem solution and return the validation results."""
-    asyncio.run(validate_problem(problem_id))
+    success, result = asyncio.run(validate_problem(problem_id))
+    # write the result to the output path
+
+    if success:
+        exit(0)
+    else:
+        exit(1)
 
 @click.command()
 def main():

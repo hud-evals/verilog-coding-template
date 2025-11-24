@@ -256,7 +256,7 @@ def hud_dict(spec: ProcessedSpec, local: bool) -> dict:
             "arguments": {"problem_id": spec.id, "transcript": "dummy transcript"},
         },
         "agent_config": {
-            "allowed_tools": ["bash", "str_replace_editor"],
+            "allowed_tools": ["bash", "str_replace_based_edit_tool"],
         },
     }
 
