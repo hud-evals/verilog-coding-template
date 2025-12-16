@@ -92,7 +92,7 @@ class GradingRunner:
         return ["true"] # no build needed for this project
 
     def _get_test_command(self) -> list[str]:
-        return ["uv", "run", "pytest", *self.test_files]
+        return ["uv", "run", "--no-sync", "pytest", *self.test_files]
 
 
     def run_grading(self) -> tuple[bool, dict]:
