@@ -20,7 +20,7 @@ dependencies = [
     "pytest>=8.4.0",
     "packaging>=21.0",
     "defusedxml>=0.7.1",
-    "hud-python[agents]>=0.4.66",
+    "hud-python[agents]>=0.5.17",
 ]
 
 [project.optional-dependencies]
@@ -61,3 +61,6 @@ line-ending = "auto"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hud_controller"]

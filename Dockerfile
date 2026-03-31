@@ -95,32 +95,31 @@ RUN git config --global user.name "mr agent"
 # =================================================================
 
 
+ARG FOLDER_NAME=example-verilog-codebase
+ENV FOLDER_NAME=${FOLDER_NAME}
+
 ENV random1=random1
-RUN git clone https://github.com/hud-evals/example-verilog-codebase /home/ubuntu/example-verilog-codebase
+RUN git clone https://github.com/hud-evals/example-verilog-codebase /home/ubuntu/${FOLDER_NAME}
 
-WORKDIR /home/ubuntu/example-verilog-codebase
+WORKDIR /home/ubuntu/${FOLDER_NAME}
 
-# Checkout branches for testing (baseline, test, golden)
-ARG TEST_BRANCH
-ARG GOLDEN_BRANCH
-ARG BASELINE_BRANCH
-RUN git checkout $BASELINE_BRANCH && \
-    git checkout $TEST_BRANCH && \
-    git checkout $GOLDEN_BRANCH && \
-    git checkout $BASELINE_BRANCH
-
-# Generate patches for grading
-USER root
-RUN mkdir -p /home/root && \
-    sudo -u ubuntu git diff $BASELINE_BRANCH $TEST_BRANCH > /home/root/test.patch && \
-    sudo -u ubuntu git diff $BASELINE_BRANCH $GOLDEN_BRANCH > /home/root/golden.patch
-USER ubuntu
-
-# Overwrite git history to avoid leaking info
-RUN rm -rf .git && git init && git add . && git commit -m "Initial commit"
+# Fetch all branches so patches can be generated at runtime
+RUN git fetch --all
 
 # build the project
 RUN uv sync
+
+# Protect .git from agent access (agent runs as ubuntu/uid 1000, MCP server runs as root)
+# This allows setup_task to:
+# 1. Generate patches at runtime (base->test, base->golden)
+# 2. Checkout the baseline branch
+# The agent cannot access git history or checkout solution branches
+USER root
+RUN mkdir -p /home/root/patches && \
+    chown -R root:root /home/ubuntu/${FOLDER_NAME}/.git && \
+    chmod -R 700 /home/ubuntu/${FOLDER_NAME}/.git && \
+    git config --global --add safe.directory /home/ubuntu/${FOLDER_NAME}
+USER ubuntu
 
 # Set environment variables
 ENV HOME=/home/ubuntu \
@@ -149,15 +148,24 @@ FROM setup AS runtime
 
 # prepare for the hud evals mcp server
 
-# copy python files
-COPY ./src /mcp_server/src
+# Copy source and config needed for the editable install
 COPY ./pyproject.toml /mcp_server/pyproject.toml
 COPY ./README.md /mcp_server/README.md
+COPY ./src /mcp_server/src
+WORKDIR /mcp_server
 
 ENV RUST_LOG=warn
-RUN cd /mcp_server && uv venv && . .venv/bin/activate && uv sync && uv pip install -e . 
-ENV PYTHONPATH=/mcp_server/.venv/lib/python3.10/site-packages
+RUN uv venv && . .venv/bin/activate && uv sync --no-install-project --extra dev && uv pip install -e .
+ENV PYTHONPATH=/mcp_server/.venv/lib/python3.12/site-packages:/mcp_server
 ENV PATH=/mcp_server/.venv/bin:$PATH
+
+# Copy environment structure (on PYTHONPATH via /mcp_server)
+# env.py: tools + scenario registration
+# tasks/: scenario definitions
+# grading/: grading module
+COPY ./env.py /mcp_server/env.py
+COPY ./grading /mcp_server/grading
+COPY ./tasks /mcp_server/tasks
 
 ENV WIDTH=1280
 ENV HEIGHT=800
@@ -175,7 +183,10 @@ EXPOSE 6080 3000
 ARG HINTS="none"
 ENV HINTS=$HINTS
 
-ARG PROBLEM_ID
-ENV PROBLEM_ID=$PROBLEM_ID
+# PROBLEM_ID is set at runtime via scenario args, not at build time
+# It selects which patches to use from /home/root/patches/{problem_id}/
+ENV PROBLEM_ID=""
+ENV PATCHES_DIR=/home/root/patches
 
-CMD ["hud_eval"]
+# Run the HUD MCP server
+CMD ["hud", "dev", "env:env", "--stdio"]

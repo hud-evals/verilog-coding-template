@@ -30,6 +30,7 @@ class GradingRunner:
         test: str,
         golden: str,
         test_files: list[str],
+        problem_id: str | None = None,
     ):
         """
         Initialize the grading runner.
@@ -38,14 +39,23 @@ class GradingRunner:
             base: The baseline branch name (preferred)
             test: The test branch name (optional, for logging)
             golden: The golden branch name (optional, for logging)
+            test_files: List of test file paths to run
+            problem_id: Problem ID for per-problem patches directory
         """
         # Determine what to use - branches take precedence
         self.use_base = base
         self.use_test = test
         self.use_golden = golden
-        self.original_repo_path = "/home/ubuntu/example-verilog-codebase"
-        self.test_patch_path = "/home/root/test.patch"
-        self.golden_patch_path = "/home/root/golden.patch"
+        self.original_repo_path = f"/home/ubuntu/{os.environ.get('FOLDER_NAME', 'example-verilog-codebase')}"
+        patches_dir = os.environ.get("PATCHES_DIR", "/home/root/patches")
+        pid = problem_id or os.environ.get("PROBLEM_ID", "")
+        if pid:
+            self.test_patch_path = os.path.join(patches_dir, pid, "test.patch")
+            self.golden_patch_path = os.path.join(patches_dir, pid, "golden.patch")
+        else:
+            # Fallback to legacy flat paths
+            self.test_patch_path = "/home/root/test.patch"
+            self.golden_patch_path = "/home/root/golden.patch"
         self.grade_working_dir = "/tmp/grading_workspace_" + str(uuid.uuid4())
         self.test_files = test_files
 

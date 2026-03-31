@@ -180,26 +180,20 @@ def build_image(
     hints: str,
     problem_id: str,
 ) -> bool:
+    # Branches are no longer passed as build args -- the Dockerfile fetches all
+    # branches and patches are generated at runtime by setup_task().
     cmd = [
         "docker",
         "build",
         "-t",
         image,
         "--build-arg",
-        f"PROBLEM_ID={problem_id}",
-        "--build-arg",
-        f"BASELINE_BRANCH={baseline_branch}",
-        "--build-arg",
-        f"TEST_BRANCH={test_branch}",
-        "--build-arg",
-        f"GOLDEN_BRANCH={golden_branch}",
-        "--build-arg",
         f"HINTS={hints}",
         "--add-host=host.docker.internal:172.17.0.1",
         context_dir,
     ]
     logger.info(
-        f"Building image {image} (BASELINE_BRANCH={baseline_branch}, TEST_BRANCH={test_branch}, GOLDEN_BRANCH={golden_branch}, HINTS={hints}, PROBLEM_ID={problem_id})"
+        f"Building image {image} (HINTS={hints}, PROBLEM_ID={problem_id})"
     )
     rc = run_command(cmd, prefix=f"[build {image}] ")
     if rc != 0:
