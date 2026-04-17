@@ -98,8 +98,14 @@ RUN git config --global user.name "mr agent"
 ARG FOLDER_NAME=example-verilog-codebase
 ENV FOLDER_NAME=${FOLDER_NAME}
 
+# Validate FOLDER_NAME is set
+RUN test -n "$FOLDER_NAME" || (echo "ERROR: FOLDER_NAME not set" && exit 1)
+
 ENV random1=random1
 RUN git clone https://github.com/hud-evals/example-verilog-codebase /home/ubuntu/${FOLDER_NAME}
+
+# Validate project directory exists after clone
+RUN test -d "/home/ubuntu/$FOLDER_NAME" || (echo "ERROR: Project directory /home/ubuntu/$FOLDER_NAME does not exist" && exit 1)
 
 WORKDIR /home/ubuntu/${FOLDER_NAME}
 
@@ -161,11 +167,11 @@ ENV PATH=/mcp_server/.venv/bin:$PATH
 
 # Copy environment structure (on PYTHONPATH via /mcp_server)
 # env.py: tools + scenario registration
-# tasks/: scenario definitions
+# tasks.py: scenario definitions + task registry
 # grading/: grading module
 COPY ./env.py /mcp_server/env.py
 COPY ./grading /mcp_server/grading
-COPY ./tasks /mcp_server/tasks
+COPY ./tasks.py /mcp_server/tasks.py
 
 ENV WIDTH=1280
 ENV HEIGHT=800
@@ -187,6 +193,9 @@ ENV HINTS=$HINTS
 # It selects which patches to use from /home/root/patches/{problem_id}/
 ENV PROBLEM_ID=""
 ENV PATCHES_DIR=/home/root/patches
+
+# Validate PATCHES_DIR is set
+RUN test -n "$PATCHES_DIR" || (echo "ERROR: PATCHES_DIR not set" && exit 1)
 
 # Run the HUD MCP server
 CMD ["hud", "dev", "env:env", "--stdio"]

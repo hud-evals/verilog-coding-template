@@ -629,7 +629,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "hud-python"
-version = "0.5.34"
+version = "0.5.37"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "a2a-sdk" },
@@ -649,9 +649,9 @@ dependencies = [
     { name = "typer" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/04/24/58e0928c755163f2d7d38d08e2a0ad4d4c3752dac0331bd215c479c3d8b4/hud_python-0.5.34.tar.gz", hash = "sha256:451d63c481336b87467c1366ad7e56ad1110c8fc525b20783be0a5bba6c02463", size = 581781, upload-time = "2026-03-24T07:08:07.147Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/39/6f/e3faedd61a373b345ccaf88ece2b64789d602f3c8ff10dbed5ae1f51fbf9/hud_python-0.5.37.tar.gz", hash = "sha256:5bd5e7271bb7c9871f04b814a5a2ce2d7f9ea99db05f64f2aa2cf96c3e6ffea7", size = 607796, upload-time = "2026-04-16T22:18:19.99Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/c5/05bf8bc6d27caba4fc4bb430a12958069afff294a51065cc8c95e5a8d6f6/hud_python-0.5.34-py3-none-any.whl", hash = "sha256:79623f17e1ca4a46e66e338c5478e17a55b7d48cb21222b2f59f1fcb44f7e89f", size = 761865, upload-time = "2026-03-24T07:08:05.655Z" },
+    { url = "https://files.pythonhosted.org/packages/6b/3f/a4cc125d04c4fa5a5db666775330dba36e3df5d33d6df8bc67f5fc46f9c1/hud_python-0.5.37-py3-none-any.whl", hash = "sha256:e74de524834f20ec35b447833741ba3b341ae49b817d1d54752f7cb52115ab43", size = 794667, upload-time = "2026-04-16T22:18:21.658Z" },
 ]
 
 [package.optional-dependencies]

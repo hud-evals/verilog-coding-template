@@ -1,7 +1,18 @@
-"""Basic difficulty tasks -- straightforward Verilog module implementations."""
+"""Task definitions for verilog coding environment.
 
-from env import env, setup_task, make_prompt
+Each task is created via scenario.task() and can be run locally or synced to the platform:
+
+    hud sync tasks <slug>
+    python local_test.py --list
+    python local_test.py --task simple_counter
+"""
+
+from env import env, make_prompt, setup_task
 from grading import AgentPatchGrader, Grade, ValidateMode
+
+# =============================================================================
+# Scenarios
+# =============================================================================
 
 
 @env.scenario("implement-counter", exclude_tools=["hud_validate"])
@@ -37,14 +48,16 @@ counter - 8-bit counter value"""
     prompt = make_prompt(description)
     _ = yield prompt
 
-    grade = Grade.from_subscores([
-        AgentPatchGrader.grade(
-            weight=1.0,
-            problem_id="simple_counter",
-            test_files=["tests/test_simple_counter_hidden.py"],
-            validate_mode=validate_mode,
-        )
-    ])
+    grade = Grade.from_subscores(
+        [
+            AgentPatchGrader.grade(
+                weight=1.0,
+                problem_id="simple_counter",
+                test_files=["tests/test_simple_counter_hidden.py"],
+                validate_mode=validate_mode,
+            )
+        ]
+    )
     yield grade.score
 
 
@@ -76,12 +89,42 @@ q - Output value"""
     prompt = make_prompt(description)
     _ = yield prompt
 
-    grade = Grade.from_subscores([
-        AgentPatchGrader.grade(
-            weight=1.0,
-            problem_id="simple_dff",
-            test_files=["tests/test_simple_dff_hidden.py"],
-            validate_mode=validate_mode,
-        )
-    ])
+    grade = Grade.from_subscores(
+        [
+            AgentPatchGrader.grade(
+                weight=1.0,
+                problem_id="simple_dff",
+                test_files=["tests/test_simple_dff_hidden.py"],
+                validate_mode=validate_mode,
+            )
+        ]
+    )
     yield grade.score
+
+
+# =============================================================================
+# Task registry -- instantiate tasks from scenarios
+# =============================================================================
+
+_counter = implement_counter.task()
+_counter.slug = "simple-counter"
+
+_counter_hints = implement_counter.task(hints_enabled=True)
+_counter_hints.slug = "simple-counter-hints"
+
+_dff = implement_dff.task()
+_dff.slug = "simple-dff"
+
+_dff_hints = implement_dff.task(hints_enabled=True)
+_dff_hints.slug = "simple-dff-hints"
+
+# All tasks keyed by name for CLI discovery
+ALL_TASKS = {
+    "simple_counter": _counter,
+    "simple_counter_hints": _counter_hints,
+    "simple_dff": _dff,
+    "simple_dff_hints": _dff_hints,
+}
+
+# Also expose as a flat list for hud sync tasks discovery
+tasks = list(ALL_TASKS.values())
