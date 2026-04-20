@@ -30,9 +30,6 @@ async def verilog_task(
 ):
     """Implement a Verilog module from a specification.
 
-    All task-specific content is passed as parameters, making this scenario
-    a reusable template.
-
     Branch names are derived from *task_id* by convention:
     ``{task_id}_baseline``, ``{task_id}_test``, ``{task_id}_golden``.
 
