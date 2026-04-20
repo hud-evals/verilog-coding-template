@@ -234,20 +234,21 @@ async def hud_validate() -> str:
 
 def setup_task(
     task_id: str,
-    base: str,
-    test: str,
-    golden: str,
     validate_mode: ValidateMode | None = None,
 ) -> None:
     """Set up environment for a task: checkout baseline, generate patches.
 
+    Branch names are derived from *task_id* using the convention
+    ``{task_id}_baseline``, ``{task_id}_test``, ``{task_id}_golden``.
+
     Args:
-        task_id: Unique identifier for the task (used for patch directory)
-        base: Baseline branch name
-        test: Test branch name (contains hidden tests)
-        golden: Golden branch name (contains solution)
-        validate_mode: If set, controls which branch to checkout
+        task_id: Unique identifier for the task (e.g. "simple_counter").
+        validate_mode: "baseline_fail" or "golden_pass" for validation.
     """
+    base = f"{task_id}_baseline"
+    test = f"{task_id}_test"
+    golden = f"{task_id}_golden"
+
     project_dir = _get_project_dir()
     patches_dir = os.environ.get("PATCHES_DIR", "/home/root/patches")
 
