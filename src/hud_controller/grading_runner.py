@@ -17,8 +17,6 @@ import threading
 import uuid
 from pathlib import Path
 
-from .utils import merge_junits
-
 logger = logging.getLogger(__name__)
 
 class GradingRunner:
