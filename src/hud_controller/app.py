@@ -11,7 +11,6 @@ import hud_controller.problems
 from hud_controller.grading_runner import GradingRunner
 from hud_controller.utils import import_submodules
 
-from .setup import start_dinit
 from .spec import PROBLEM_REGISTRY, Grade, ProblemSpec
 from .tools.base import ToolResult
 
@@ -190,8 +189,6 @@ async def setup_problem(
     logger.info(f"Problem ID: {problem_id}")
     logger.info(f"Spec: {spec}")
 
-    # Start the dinit services
-    await start_dinit()
     # create the full statement
     return spec_to_statement(spec)
 

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM ubuntu:24.04 AS setup
 
-# Update and install core dependencies (including working Chromium browser)
+# Update and install core dependencies
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
   vim \
@@ -12,64 +12,25 @@ RUN apt-get update -y \
   sudo \
   bash \
   net-tools \
-  novnc \
-  x11vnc \
-  xvfb \
   python3 \
   python3-pip \
   python3-dev \
-  python3-tk \
   python3-wheel \
   python3-venv \
-  xfce4 \
   locales \
   libpq5 \
   sqlite3 \
-  dbus-x11 \
-  xfce4-terminal \
-  xfonts-base \
-  xdotool \
   psmisc \
-  scrot \
-  imagemagick \
-  pm-utils \
   build-essential \
   python-is-python3 \
   unzip \
   git \
-  xauth \
-  ffmpeg \
-  nginx \
   gnupg \
-  gpg \ 
+  gpg \
   jq \
-  build-essential \
-  python3 \
   make \
   gcc \
   g++ \
-  libcairo2-dev \
-  libjpeg-turbo8-dev \
-  libpng-dev \
-  libwebp-dev \
-  libtiff-dev \
-  libgif-dev \
-  libvips-dev \
-  libgstreamer1.0-0 \
-  libgtk-4-1 \
-  libgraphene-1.0-0 \
-  libwoff1 \
-  libevent-2.1-7 \
-  libgstreamer-plugins-base1.0-0 \
-  libgstreamer-plugins-good1.0-0 \
-  libgstreamer-gl1.0-0 \
-  libgstreamer-plugins-bad1.0-0 \
-  libavif16 \
-  libenchant-2-2 \
-  libsecret-1-0 \
-  libhyphen0 \
-  libmanette-0.2-0 \
-  libgles2 \
   iverilog \
   verilator
 
@@ -129,20 +90,9 @@ USER ubuntu
 
 # Set environment variables
 ENV HOME=/home/ubuntu \
-    DEBIAN_FRONTEND=noninteractive \
-    DISPLAY=:1.0 \
-    DISPLAY_WIDTH=1280 \
-    DISPLAY_HEIGHT=800
+    DEBIAN_FRONTEND=noninteractive
 
-EXPOSE 6080
-
-# supress AT-SPI errors
-ENV NO_AT_BRIDGE=1
 USER root
-
-# Setup and start dinit
-COPY dinit.d/ /etc/dinit.d/
-RUN mkdir -p /var/log/dinit && chmod 755 /var/log/dinit
 
 # Postgres config:
 ENV POSTGRES_USER=ubuntu
@@ -173,18 +123,12 @@ COPY ./env.py /mcp_server/env.py
 COPY ./grading /mcp_server/grading
 COPY ./tasks.py /mcp_server/tasks.py
 
-ENV WIDTH=1280
-ENV HEIGHT=800
-ENV DISPLAY_NUM=1
-RUN mkdir -p /home/ubuntu/screenshots
-RUN chmod 777 /home/ubuntu/screenshots
-ENV SCREENSHOT_DIR=/home/ubuntu/screenshots
 RUN mkdir -p /home/ubuntu/Downloads
 RUN chmod 777 /home/ubuntu/Downloads
 
 RUN chmod 777 /root
 
-EXPOSE 6080 3000
+EXPOSE 3000
 
 ARG HINTS="none"
 ENV HINTS=$HINTS
