@@ -9,7 +9,6 @@ dependencies = [
     "mcp[cli]>=1.10.1",
     "pillow",
     "pydantic>=2.11.4",
-    "numpy>=1.26.0",
     "pyyaml>=6.0.2",
     "pymongo",
     "anthropic>=0.49.0",

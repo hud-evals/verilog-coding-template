@@ -1,23 +1,28 @@
 """Graders for evaluating agent solutions."""
 
+import asyncio
 import os
+from typing import Literal
+
+from hud.native.graders import Grader
 
 from .runner import GradingRunner
-from .spec import Grader, ValidateMode
+
+ValidateMode = Literal["baseline_fail", "golden_pass"]
 
 
 class AgentPatchGrader(Grader):
     """Grader that applies test.patch and runs tests.
 
     Usage:
-        AgentPatchGrader.grade(
+        await AgentPatchGrader.grade(
             weight=1.0,
             problem_id="my_task",
             test_files=["tests/test_foo.py"],
         )
 
     Custom test command:
-        AgentPatchGrader.grade(
+        await AgentPatchGrader.grade(
             weight=1.0,
             problem_id="my_task",
             test_files=["tests/test_foo.py"],
@@ -29,7 +34,7 @@ class AgentPatchGrader(Grader):
     DEFAULT_TEST_COMMAND = "uv run --no-sync pytest {test_files}"
 
     @classmethod
-    def compute_score(
+    async def compute_score(
         cls,
         test_files: list[str],
         problem_id: str | None = None,
@@ -58,10 +63,8 @@ class AgentPatchGrader(Grader):
             test_files=test_files,
         )
 
-        score = runner.grade()
+        score = await asyncio.to_thread(runner.grade)
 
-        # When testing with baseline fail, we want to ensure that the baseline
-        # actually fails, so we invert the score
         if validate_mode == "baseline_fail":
             score = 1.0 if score == 0.0 else 0.0
 

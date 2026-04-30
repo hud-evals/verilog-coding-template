@@ -1,14 +1,16 @@
 """Grading system for verilog coding environment tasks."""
 
-from .graders import AgentPatchGrader
+from hud.native.graders import Grade, Grader
+from hud.tools.types import SubScore
+
+from .graders import AgentPatchGrader, ValidateMode
 from .runner import GradingRunner
-from .spec import Grade, Grader, SubGrade, ValidateMode
 
 __all__ = [
     "AgentPatchGrader",
     "Grade",
     "Grader",
     "GradingRunner",
-    "SubGrade",
+    "SubScore",
     "ValidateMode",
 ]

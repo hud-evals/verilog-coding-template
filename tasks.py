@@ -47,17 +47,14 @@ async def verilog_task(
     prompt = make_prompt(description)
     _ = yield prompt
 
-    grade = Grade.from_subscores(
-        [
-            AgentPatchGrader.grade(
-                weight=1.0,
-                problem_id=task_id,
-                test_files=test_files,
-                validate_mode=validate_mode,
-            )
-        ]
+    yield await Grade.gather(
+        AgentPatchGrader.grade(
+            weight=1.0,
+            problem_id=task_id,
+            test_files=test_files,
+            validate_mode=validate_mode,
+        )
     )
-    yield grade.score
 
 
 # =============================================================================
