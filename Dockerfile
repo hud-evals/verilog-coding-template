@@ -107,7 +107,8 @@ FROM setup AS runtime
 # Copy source and config needed for the editable install
 COPY ./pyproject.toml /mcp_server/pyproject.toml
 COPY ./README.md /mcp_server/README.md
-COPY ./src /mcp_server/src
+COPY ./tools /mcp_server/tools
+COPY ./grading /mcp_server/grading
 WORKDIR /mcp_server
 
 ENV RUST_LOG=warn
@@ -118,9 +119,7 @@ ENV PATH=/mcp_server/.venv/bin:$PATH
 # Copy environment structure (on PYTHONPATH via /mcp_server)
 # env.py: tools + scenario registration
 # tasks.py: scenario definitions + task registry
-# grading/: grading module
 COPY ./env.py /mcp_server/env.py
-COPY ./grading /mcp_server/grading
 COPY ./tasks.py /mcp_server/tasks.py
 
 RUN mkdir -p /home/ubuntu/Downloads
@@ -142,4 +141,4 @@ ENV PATCHES_DIR=/home/root/patches
 RUN test -n "$PATCHES_DIR" || (echo "ERROR: PATCHES_DIR not set" && exit 1)
 
 # Run the HUD MCP server
-CMD ["hud", "dev", "env:env", "--stdio"]
+CMD ["hud", "dev", "tasks:env", "--stdio"]

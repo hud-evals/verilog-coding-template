@@ -574,62 +574,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hud-controller"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "anthropic" },
-    { name = "defusedxml" },
-    { name = "fastapi" },
-    { name = "fastmcp" },
-    { name = "hud-python", extra = ["agents"] },
-    { name = "imageio" },
-    { name = "jsonschema" },
-    { name = "mcp", extra = ["cli"] },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "pillow" },
-    { name = "pydantic" },
-    { name = "pymongo" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pyyaml" },
-    { name = "uvicorn" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "ruff" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "anthropic", specifier = ">=0.49.0" },
-    { name = "defusedxml", specifier = ">=0.7.1" },
-    { name = "fastapi", specifier = ">=0.110.0" },
-    { name = "fastmcp", specifier = ">=0.3.0" },
-    { name = "hud-python", extras = ["agents"], specifier = ">=0.5.17" },
-    { name = "imageio", specifier = ">=2.31.0" },
-    { name = "jsonschema", specifier = ">=4.21.0" },
-    { name = "mcp", extras = ["cli"], specifier = ">=1.10.1" },
-    { name = "numpy", specifier = ">=1.26.0" },
-    { name = "packaging", specifier = ">=21.0" },
-    { name = "pillow" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.5.0" },
-    { name = "pydantic", specifier = ">=2.11.4" },
-    { name = "pymongo" },
-    { name = "pytest", specifier = ">=8.4.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-asyncio", specifier = ">=0.23.0" },
-    { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.2" },
-    { name = "uvicorn", specifier = ">=0.28.0" },
-]
-provides-extras = ["dev"]
-
-[[package]]
 name = "hud-python"
 version = "0.5.37"
 source = { registry = "https://pypi.org/simple" }
@@ -2200,6 +2144,62 @@ sdist = { url = "https://files.pythonhosted.org/packages/e3/ad/4a96c425be6fb67e0
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0a/89/f8827ccff89c1586027a105e5630ff6139a64da2515e24dafe860bd9ae4d/uvicorn-0.42.0-py3-none-any.whl", hash = "sha256:96c30f5c7abe6f74ae8900a70e92b85ad6613b745d4879eb9b16ccad15645359", size = 68830, upload-time = "2026-03-16T06:19:48.325Z" },
 ]
+
+[[package]]
+name = "verilog-coding-env"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "anthropic" },
+    { name = "defusedxml" },
+    { name = "fastapi" },
+    { name = "fastmcp" },
+    { name = "hud-python", extra = ["agents"] },
+    { name = "imageio" },
+    { name = "jsonschema" },
+    { name = "mcp", extra = ["cli"] },
+    { name = "numpy" },
+    { name = "packaging" },
+    { name = "pillow" },
+    { name = "pydantic" },
+    { name = "pymongo" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pyyaml" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "ruff" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = ">=0.49.0" },
+    { name = "defusedxml", specifier = ">=0.7.1" },
+    { name = "fastapi", specifier = ">=0.110.0" },
+    { name = "fastmcp", specifier = ">=0.3.0" },
+    { name = "hud-python", extras = ["agents"], specifier = ">=0.5.17" },
+    { name = "imageio", specifier = ">=2.31.0" },
+    { name = "jsonschema", specifier = ">=4.21.0" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.10.1" },
+    { name = "numpy", specifier = ">=1.26.0" },
+    { name = "packaging", specifier = ">=21.0" },
+    { name = "pillow" },
+    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.5.0" },
+    { name = "pydantic", specifier = ">=2.11.4" },
+    { name = "pymongo" },
+    { name = "pytest", specifier = ">=8.4.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "pytest-asyncio", specifier = ">=0.23.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.2" },
+    { name = "uvicorn", specifier = ">=0.28.0" },
+]
+provides-extras = ["dev"]
 
 [[package]]
 name = "virtualenv"

@@ -19,7 +19,7 @@ from pathlib import Path
 from hud import Environment
 
 from grading import ValidateMode
-from hud_controller.tools.base import ToolError
+from tools import ToolError
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +43,7 @@ async def initialize() -> None:
     """Initialize the coding environment tools."""
     global _bash_tool, _edit_tool, _shell_tool, _apply_patch_tool
 
-    from hud_controller.tools.bash import BashTool
-    from hud_controller.tools.edit import EditTool
-    from hud_controller.tools.shell import ShellTool
-    from hud_controller.tools.apply_patch import ApplyPatchTool
+    from tools import ApplyPatchTool, BashTool, EditTool, ShellTool
 
     logger.info("Initializing verilog coding environment")
     _bash_tool = BashTool()
@@ -328,10 +325,3 @@ Use the tools provided to complete the following task:
 
 {description}
 """
-
-
-# ============================================================================
-# Import and register all scenarios from tasks/
-# ============================================================================
-
-import tasks  # noqa: E402, F401 - registers scenarios
