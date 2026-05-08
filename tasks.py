@@ -6,10 +6,6 @@ passing different values — no new scenario function needed.
 
 Branch names are derived from ``task_id`` by convention:
 ``{task_id}_baseline``, ``{task_id}_test``, ``{task_id}_golden``.
-
-    hud sync tasks <slug>
-    python local_test.py --list
-    python local_test.py --task simple_counter
 """
 
 from env import verilog_task
