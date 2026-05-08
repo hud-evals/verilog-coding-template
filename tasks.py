@@ -12,49 +12,7 @@ Branch names are derived from ``task_id`` by convention:
     python local_test.py --task simple_counter
 """
 
-from env import env, make_prompt, setup_task
-from grading import AgentPatchGrader, Grade, ValidateMode
-
-
-# =============================================================================
-# Scenario — generic Verilog implementation template
-# =============================================================================
-
-
-@env.scenario("verilog-task", exclude_tools=["hud_validate"])
-async def verilog_task(
-    task_id: str,
-    description: str,
-    test_files: list[str],
-    validate_mode: ValidateMode | None = None,
-):
-    """Implement a Verilog module from a specification.
-
-    Branch names are derived from *task_id* by convention:
-    ``{task_id}_baseline``, ``{task_id}_test``, ``{task_id}_golden``.
-
-    Args:
-        task_id: Unique identifier (e.g. "simple_counter").
-        description: Task description shown to the agent.
-        test_files: List of test file paths applied via patch.
-        validate_mode: "baseline_fail" or "golden_pass" for validation.
-    """
-    setup_task(
-        task_id=task_id,
-        validate_mode=validate_mode,
-    )
-
-    prompt = make_prompt(description)
-    _ = yield prompt
-
-    yield await Grade.gather(
-        AgentPatchGrader.grade(
-            weight=1.0,
-            problem_id=task_id,
-            test_files=test_files,
-            validate_mode=validate_mode,
-        )
-    )
+from env import verilog_task
 
 
 # =============================================================================
