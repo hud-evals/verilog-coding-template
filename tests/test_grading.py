@@ -15,7 +15,7 @@ import json
 
 import pytest
 
-from tasks import ALL_TASKS
+from tasks import tasks
 
 pytestmark = pytest.mark.asyncio(loop_scope="session")
 
@@ -57,7 +57,7 @@ def _extract_score(resource_content) -> float:
 async def test_baseline_fails(env, task_id):
     """Baseline (skeleton) code should fail the test suite -> grader returns 1.0 (inverted)."""
     prompt_name = f"{env.name}:{SCENARIO_SLUG}"
-    task_args = ALL_TASKS[task_id].args or {}
+    task_args = tasks[task_id].args or {}
 
     # Setup phase: checkout baseline, generate patches
     await env.get_prompt(prompt_name, {"validate_mode": "baseline_fail", **task_args})
@@ -74,7 +74,7 @@ async def test_baseline_fails(env, task_id):
 async def test_golden_passes(env, task_id):
     """Golden (solution) code should pass the test suite -> grader returns 1.0."""
     prompt_name = f"{env.name}:{SCENARIO_SLUG}"
-    task_args = ALL_TASKS[task_id].args or {}
+    task_args = tasks[task_id].args or {}
 
     # Setup phase: checkout golden branch, generate patches
     await env.get_prompt(prompt_name, {"validate_mode": "golden_pass", **task_args})

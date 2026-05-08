@@ -19,7 +19,7 @@ from env import verilog_task
 # Tasks
 # =============================================================================
 
-_counter = verilog_task.task(
+simple_counter = verilog_task.task(
     task_id="simple_counter",
     description=(
         "Please implement a simple synchronous counter with reset, enable, set, "
@@ -35,9 +35,9 @@ _counter = verilog_task.task(
     ),
     test_files=["tests/test_simple_counter_hidden.py"],
 )
-_counter.slug = "simple-counter"
+simple_counter.slug = "simple-counter"
 
-_counter_hints = verilog_task.task(
+simple_counter_hints = verilog_task.task(
     task_id="simple_counter",
     description=(
         "Please implement a simple synchronous counter with reset, enable, set, "
@@ -55,9 +55,9 @@ _counter_hints = verilog_task.task(
     ),
     test_files=["tests/test_simple_counter_hidden.py"],
 )
-_counter_hints.slug = "simple-counter-hints"
+simple_counter_hints.slug = "simple-counter-hints"
 
-_dff = verilog_task.task(
+simple_dff = verilog_task.task(
     task_id="simple_dff",
     description=(
         "Please implement a simple digital flip-flop with a clock input and a data input.\n"
@@ -70,9 +70,9 @@ _dff = verilog_task.task(
     ),
     test_files=["tests/test_simple_dff_hidden.py"],
 )
-_dff.slug = "simple-dff"
+simple_dff.slug = "simple-dff"
 
-_dff_hints = verilog_task.task(
+simple_dff_hints = verilog_task.task(
     task_id="simple_dff",
     description=(
         "Please implement a simple digital flip-flop with a clock input and a data input.\n"
@@ -86,18 +86,15 @@ _dff_hints = verilog_task.task(
     ),
     test_files=["tests/test_simple_dff_hidden.py"],
 )
-_dff_hints.slug = "simple-dff-hints"
+simple_dff_hints.slug = "simple-dff-hints"
 
 # =============================================================================
 # Task registry — keyed by name for CLI discovery
 # =============================================================================
 
-ALL_TASKS = {
-    "simple_counter": _counter,
-    "simple_counter_hints": _counter_hints,
-    "simple_dff": _dff,
-    "simple_dff_hints": _dff_hints,
+tasks = {
+    "simple_counter": simple_counter,
+    "simple_counter_hints": simple_counter_hints,
+    "simple_dff": simple_dff,
+    "simple_dff_hints": simple_dff_hints,
 }
-
-# Also expose as a flat list for hud sync tasks discovery
-tasks = list(ALL_TASKS.values())
