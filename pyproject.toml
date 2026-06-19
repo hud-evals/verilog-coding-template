@@ -6,8 +6,7 @@ readme = "README.md"
 # v6 SDK caps Python at <3.13; without this uv may pick 3.13 and fail to resolve.
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    # hud v6 SDK, pinned to the validated commit.
-    "hud-python[agents] @ git+https://github.com/hud-evals/hud-python.git@b72a9444310e7bd5a3828cb631b27aaa2817b475",
+    "hud-python[agents]>=0.6.0",
 ]
 
 [project.optional-dependencies]
@@ -25,10 +24,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 only-include = ["env.py", "tasks.py"]
 sources = ["."]
-
-# hatchling rejects git/URL (direct reference) deps without this.
-[tool.hatch.metadata]
-allow-direct-references = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
