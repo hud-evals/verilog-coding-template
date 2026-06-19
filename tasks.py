@@ -1,96 +1,91 @@
-"""Task definitions for verilog coding environment.
+"""Task definitions for the Verilog coding environment.
 
-One generic ``verilog_task`` scenario accepts all task content as parameters
-(description, test files). Each ``.task()`` call produces a distinct task by
-passing different values — no new scenario function needed.
+Run locally:  hud eval tasks.py claude --task-ids simple-counter --group 1 -y
 
-Branch names are derived from ``task_id`` by convention:
-``{task_id}_baseline``, ``{task_id}_test``, ``{task_id}_golden``.
+Calling the generic ``verilog_task`` template binds a concrete ``Task``; branch names
+follow ``{task_id}_{baseline,test,golden}``. ``env`` is re-exported because ``hud eval
+tasks.py`` serves this module as the env source (``load_environment`` needs it here).
 """
 
-from env import verilog_task
+from env import env, verilog_task  # noqa: F401  (env re-exported for `hud eval tasks.py`)
+
+# Behavioral contract shared by both counter variants. Stated explicitly so the prompt
+# matches what the hidden cocotb testbench actually checks (synchronous design, the
+# rst > set > ena priority, synchronous load, hold-on-idle, 8-bit wrap); otherwise a
+# reasonable-but-different counter (e.g. async reset, or ena beating set) fails silently.
+_COUNTER_SPEC = (
+    "Implement an 8-bit synchronous counter in sources/simple_counter.sv.\n\n"
+    "Ports (already declared, do not change them):\n"
+    "  clk     - clock; all state changes happen on its rising edge\n"
+    "  rst     - synchronous reset\n"
+    "  ena     - count enable\n"
+    "  set     - synchronous load enable\n"
+    "  din     - 8-bit value loaded when set is asserted\n"
+    "  counter - 8-bit registered output\n\n"
+    "Behavior, evaluated on each rising edge of clk, in this priority order:\n"
+    "  1. If rst is high, counter becomes 0.\n"
+    "  2. Else if set is high, counter is loaded with din.\n"
+    "  3. Else if ena is high, counter increments by 1 (wrapping modulo 256).\n"
+    "  4. Otherwise counter holds its current value.\n"
+    "All updates are synchronous (registered on the rising clock edge); counter resets "
+    "to 0 and starts at 0."
+)
+
+_DFF_SPEC = (
+    "Implement a positive-edge-triggered D flip-flop in sources/dff.sv.\n\n"
+    "Ports (already declared, do not change them):\n"
+    "  clk - clock\n"
+    "  d   - data input\n"
+    "  q   - registered data output\n\n"
+    "Behavior: on each rising edge of clk, q is updated to the value of d sampled at "
+    "that edge. q is registered, so it reflects d with one clock of latency (a "
+    "combinational `assign q = d` is incorrect)."
+)
 
 
-# =============================================================================
-# Tasks
-# =============================================================================
+# The intermediate Task vars are underscore-prefixed so the taskset scanner skips them (it
+# collects public module-level Tasks AND public lists/tuples of Tasks). If they were public,
+# each task would be collected twice (standalone and via the `tasks` list), and Taskset would
+# raise "duplicate task slugs". Only the public `tasks` LIST below is collected.
 
-simple_counter = verilog_task.task(
+_simple_counter = verilog_task(
+    task_id="simple_counter",
+    description=_COUNTER_SPEC,
+    test_files=["tests/test_simple_counter_hidden.py"],
+)
+_simple_counter.slug = "simple-counter"
+_simple_counter.columns = {"module": "simple_counter", "hints": False}
+
+_simple_counter_hints = verilog_task(
     task_id="simple_counter",
     description=(
-        "Please implement a simple synchronous counter with reset, enable, set, "
-        "and load functionality.\n\n"
-        "Inputs:\n"
-        "clk - Clock signal (triggers on rising edge)\n"
-        "rst - Synchronous reset signal\n"
-        "ena - Enable signal (allows counting)\n"
-        "set - Load signal (sets counter to a specific value)\n"
-        "din - 8-bit data input (value to load when set is high)\n\n"
-        "Output:\n"
-        "counter - 8-bit counter value"
+        _COUNTER_SPEC
+        + "\n\nHint: use a single `always_ff @(posedge clk)` block. Check rst first "
+        "(counter <= 0), then set (counter <= din), then ena (counter <= counter + 1), "
+        "otherwise hold."
     ),
     test_files=["tests/test_simple_counter_hidden.py"],
 )
-simple_counter.slug = "simple-counter"
+_simple_counter_hints.slug = "simple-counter-hints"
+_simple_counter_hints.columns = {"module": "simple_counter", "hints": True}
 
-simple_counter_hints = verilog_task.task(
-    task_id="simple_counter",
-    description=(
-        "Please implement a simple synchronous counter with reset, enable, set, "
-        "and load functionality.\n\n"
-        "Inputs:\n"
-        "clk - Clock signal (triggers on rising edge)\n"
-        "rst - Synchronous reset signal\n"
-        "ena - Enable signal (allows counting)\n"
-        "set - Load signal (sets counter to a specific value)\n"
-        "din - 8-bit data input (value to load when set is high)\n\n"
-        "Output:\n"
-        "counter - 8-bit counter value\n\n"
-        "Hint: Use an always @(posedge clk) block. Check rst first (reset counter to 0),"
-        " then set (load din into counter), then ena (increment counter by 1)."
-    ),
-    test_files=["tests/test_simple_counter_hidden.py"],
-)
-simple_counter_hints.slug = "simple-counter-hints"
-
-simple_dff = verilog_task.task(
+_simple_dff = verilog_task(
     task_id="simple_dff",
-    description=(
-        "Please implement a simple digital flip-flop with a clock input and a data input.\n"
-        "The output should be the same as the data input on the rising edge of the clock.\n\n"
-        "Inputs:\n"
-        "clk - Clock signal (triggers on rising edge)\n"
-        "d - Data input\n\n"
-        "Output:\n"
-        "q - Output value"
-    ),
+    description=_DFF_SPEC,
     test_files=["tests/test_simple_dff_hidden.py"],
 )
-simple_dff.slug = "simple-dff"
+_simple_dff.slug = "simple-dff"
+_simple_dff.columns = {"module": "simple_dff", "hints": False}
 
-simple_dff_hints = verilog_task.task(
+_simple_dff_hints = verilog_task(
     task_id="simple_dff",
-    description=(
-        "Please implement a simple digital flip-flop with a clock input and a data input.\n"
-        "The output should be the same as the data input on the rising edge of the clock.\n\n"
-        "Inputs:\n"
-        "clk - Clock signal (triggers on rising edge)\n"
-        "d - Data input\n\n"
-        "Output:\n"
-        "q - Output value\n\n"
-        "Hint: Use always @(posedge clk) q <= d;"
-    ),
+    description=_DFF_SPEC + "\n\nHint: use `always @(posedge clk) q <= d;`",
     test_files=["tests/test_simple_dff_hidden.py"],
 )
-simple_dff_hints.slug = "simple-dff-hints"
+_simple_dff_hints.slug = "simple-dff-hints"
+_simple_dff_hints.columns = {"module": "simple_dff", "hints": True}
 
-# =============================================================================
-# Task registry — keyed by name for CLI discovery
-# =============================================================================
 
-tasks = {
-    "simple_counter": simple_counter,
-    "simple_counter_hints": simple_counter_hints,
-    "simple_dff": simple_dff,
-    "simple_dff_hints": simple_dff_hints,
-}
+# Public taskset, a LIST (not a dict): hud eval / hud sync scan module-level Task objects;
+# a dict would collect nothing.
+tasks = [_simple_counter, _simple_counter_hints, _simple_dff, _simple_dff_hints]

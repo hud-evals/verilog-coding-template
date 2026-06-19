@@ -1,86 +1,62 @@
-"""Grading validation tests for all tasks.
+"""Golden / baseline grading validation (v6, no agent).
 
-These tests run each task's grading pipeline inside the Docker container,
-verifying that:
-  - The baseline (skeleton) code fails the tests  -> score 0.0
-  - The golden (solution) code passes the tests   -> score 1.0
+For each task we build a ``validate_mode`` variant of the template and drive it with the
+no-agent ``Run`` driver: setup runs on context enter, grading on exit. We assert:
 
-Usage:
-    uv run pytest tests/test_grading.py -v
-    uv run pytest tests/test_grading.py -v --image my-image:latest
-    uv run pytest tests/test_grading.py -v -k simple_counter
+  * golden  -> the reference solution passes the hidden tests           -> reward 1.0
+  * baseline -> the empty skeleton fails the hidden tests (inverted)    -> reward 1.0
+
+The cocotb tests run through Icarus Verilog, so run this against an env that has the
+toolchain (the built image): ``pytest tests/ -v --runtime tcp://127.0.0.1:8765``.
+
+Note: ``test_baseline_fails`` inverts a pytest failure to 1.0, so a missing-iverilog
+*infrastructure* error would also invert to 1.0 (a false green). Always run it together
+with ``test_golden_passes``: golden is the infra canary; if the toolchain is broken,
+golden fails, surfacing the problem. Do not run only the baseline tests.
+
+    pytest tests/test_grading.py -v --runtime tcp://127.0.0.1:8765
+    pytest tests/test_grading.py -v -k simple_counter --runtime tcp://127.0.0.1:8765
 """
 
-import json
-
 import pytest
+from hud import Run, connect
 
-from tasks import tasks
+from env import verilog_task
 
-pytestmark = pytest.mark.asyncio(loop_scope="session")
-
-SCENARIO_SLUG = "verilog-task"
-
-# Non-hint tasks to validate (hint variants share the same branches/grading)
-TASK_IDS = [
-    "simple_counter",
-    "simple_dff",
+# (task_id, hidden test files); hint variants share branches/grading, so we validate once.
+TASKS = [
+    ("simple_counter", ["tests/test_simple_counter_hidden.py"]),
+    ("simple_dff", ["tests/test_simple_dff_hidden.py"]),
 ]
 
 
-def _extract_score(resource_content) -> float:
-    """Extract numeric score from a resource read result.
-
-    The resource returns JSON like: {"reward": 1.0, "done": true, "info": {}, "isError": false}
-    """
-    text = None
-    if isinstance(resource_content, list):
-        for block in resource_content:
-            if hasattr(block, "text"):
-                text = block.text
-                break
-    else:
-        text = str(resource_content)
-
-    if text is None:
-        raise ValueError(f"No text content in resource result: {resource_content}")
-
-    # Try JSON first (e.g. {"reward": 1.0, ...}), fall back to bare float
-    try:
-        data = json.loads(text)
-        return float(data["reward"])
-    except (json.JSONDecodeError, KeyError, TypeError):
-        return float(text)
+async def _grade(runtime, task) -> float:
+    """Serve + connect + run with no agent: setup on enter, grade on exit."""
+    async with runtime(task) as addr, connect(addr) as client:
+        async with Run(client, task.id, task.args) as run:
+            pass  # no agent; the workspace stays in its setup state
+    return run.reward
 
 
-@pytest.mark.parametrize("task_id", TASK_IDS)
-async def test_baseline_fails(env, task_id):
-    """Baseline (skeleton) code should fail the test suite -> grader returns 1.0 (inverted)."""
-    prompt_name = f"{env.name}:{SCENARIO_SLUG}"
-    task_args = tasks[task_id].args or {}
-
-    # Setup phase: checkout baseline, generate patches
-    await env.get_prompt(prompt_name, {"validate_mode": "baseline_fail", **task_args})
-
-    # Evaluate phase: apply test.patch, run tests, grade
-    result = await env.read_resource(prompt_name)
-    score = _extract_score(result)
-
-    # baseline_fail mode inverts the score: if tests fail (expected) -> score 1.0
-    assert score == 1.0, f"{task_id}: baseline should fail tests (inverted score should be 1.0, got {score})"
+@pytest.mark.parametrize("task_id,test_files", TASKS, ids=[t[0] for t in TASKS])
+async def test_golden_passes(runtime, task_id, test_files):
+    task = verilog_task(
+        task_id=task_id,
+        description="(validation)",
+        test_files=test_files,
+        validate_mode="golden_pass",
+    )
+    reward = await _grade(runtime, task)
+    assert reward == 1.0, f"{task_id}: golden solution should pass the hidden tests (got {reward})"
 
 
-@pytest.mark.parametrize("task_id", TASK_IDS)
-async def test_golden_passes(env, task_id):
-    """Golden (solution) code should pass the test suite -> grader returns 1.0."""
-    prompt_name = f"{env.name}:{SCENARIO_SLUG}"
-    task_args = tasks[task_id].args or {}
-
-    # Setup phase: checkout golden branch, generate patches
-    await env.get_prompt(prompt_name, {"validate_mode": "golden_pass", **task_args})
-
-    # Evaluate phase: apply test.patch, run tests, grade
-    result = await env.read_resource(prompt_name)
-    score = _extract_score(result)
-
-    assert score == 1.0, f"{task_id}: golden branch should pass tests (score should be 1.0, got {score})"
+@pytest.mark.parametrize("task_id,test_files", TASKS, ids=[t[0] for t in TASKS])
+async def test_baseline_fails(runtime, task_id, test_files):
+    task = verilog_task(
+        task_id=task_id,
+        description="(validation)",
+        test_files=test_files,
+        validate_mode="baseline_fail",
+    )
+    reward = await _grade(runtime, task)
+    assert reward == 1.0, f"{task_id}: empty baseline should fail -> inverted reward 1.0 (got {reward})"
