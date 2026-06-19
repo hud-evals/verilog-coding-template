@@ -1,13 +1,25 @@
-"""Shared fixtures for the verilog-coding-template test suite."""
+"""Shared fixtures for the verilog-coding test suite (v6).
+
+v6 tests drive a *served* environment over the control channel. The ``runtime`` fixture
+chooses how the env is served:
+
+  * ``--runtime local`` (default): ``LocalRuntime`` serves ``tasks.py`` in a child
+    process. Self-contained, but the cocotb grade shells out to ``iverilog``, so a real
+    pass/fail needs Icarus Verilog + a synced substrate venv on this host (Linux, or
+    macOS with ``brew install icarus-verilog`` + a one-time substrate ``uv sync``).
+  * ``--runtime tcp://HOST:PORT``: attach to an already-running container (the built
+    image), which bundles iverilog + the synced venv. This is the authoritative way to
+    validate golden/baseline:
+
+        docker run -d --rm -p 8765:8765 verilog-coding-template:dev
+        uv run --extra dev pytest tests/ -v --runtime tcp://127.0.0.1:8765
+"""
 
 import sys
 from pathlib import Path
 
 import pytest
-import pytest_asyncio
-from hud import Environment
 
-# Ensure the project root is on sys.path so imports like `from tasks import ...` work.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -15,40 +27,20 @@ if str(PROJECT_ROOT) not in sys.path:
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--image",
-        default=None,
-        help="Docker image name or URL to test against (e.g. verilog-coding-template:dev or https://mcp.example.com)",
+        "--runtime",
+        default="local",
+        help="'local' (serve tasks.py via LocalRuntime) or a tcp:// url to attach to a running env.",
     )
 
 
 @pytest.fixture(scope="session")
-def image_name(request):
-    """Resolve the target: --image flag > pyproject.toml [tool.hud].image."""
-    name = request.config.getoption("--image")
-    if name:
-        return name
+def runtime(request):
+    """A v6 placement provider: ``LocalRuntime`` or a ``Runtime`` tcp attach."""
+    from hud.eval import LocalRuntime, Runtime
 
-    # Fall back to pyproject.toml
-    import tomllib
-
-    pyproject = PROJECT_ROOT / "pyproject.toml"
-    if pyproject.exists():
-        with open(pyproject, "rb") as f:
-            data = tomllib.load(f)
-        name = data.get("tool", {}).get("hud", {}).get("image")
-        if name:
-            return name
-
-    raise ValueError("No target specified. Use --image <name-or-url> or set [tool.hud].image in pyproject.toml")
-
-
-@pytest_asyncio.fixture(scope="session", loop_scope="session")
-async def env(image_name):
-    """A connected Environment. Supports both Docker image names and URLs."""
-    env = Environment("verilog-coding")
-    if image_name.startswith("http://") or image_name.startswith("https://"):
-        env.connect_url(image_name)
-    else:
-        env.connect_image(image_name)
-    async with env:
-        yield env
+    choice = request.config.getoption("--runtime")
+    if choice == "local":
+        return LocalRuntime(str(PROJECT_ROOT / "tasks.py"))
+    if choice.startswith("tcp://"):
+        return Runtime(choice)
+    raise ValueError(f"--runtime must be 'local' or a tcp:// url, got {choice!r}")

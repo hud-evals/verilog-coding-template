@@ -3,71 +3,42 @@
 .gitignore
 .gitmodules
 
-# Python
+# Python / venvs
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 .pytest_cache/
+.ruff_cache/
 .coverage
-*.cover
-.hypothesis/
-.env
 .venv
 env/
 venv/
 ENV/
 
-# Logs
-*.log
-logs/
-build.log
-backend.log
+# HUD local state (deploy link, per-process scratch, eval scratch)
+.hud/
+.hud_local/
+.hud_eval.toml
 
-# Test outputs
-qa_results/
-test_results/
-coverage/
-
-# Temporary files
-*.tmp
-*.temp
-tmp/
-temp/
-
-# IDE
+# Tooling / OS / logs
+.opencode/
 .vscode/
 .idea/
 *.swp
-*.swo
-*~
 .DS_Store
+*.log
 
-# Node (if any)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Verilog / cocotb sim artifacts
+sim_build/
+*.vcd
+*.vvp
 
-# Unnecessary directories for Docker
-mitsushiba/
-autogenerate/
-problem_templates/
-test/
-test_data/
-taiga-frontend-enhanced-main/
-outline-codegen/ideas/
-outline-codegen/output/
+# Env / secrets
+.env
+.env.*
 
-# Temporary problem files
-codegen_problems_qa.json
-qa_summary.md
-test_codegen_simple.json
-final_*.json
-test_problems*.json
-debug_codegen.py
-
-# Keep the build lean
+# Keep the build context lean (the Dockerfile COPYs README.md explicitly)
 *.md
-!README.md 
+!README.md

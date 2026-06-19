@@ -1,138 +1,64 @@
 # syntax=docker/dockerfile:1
-FROM ubuntu:24.04 AS setup
+FROM ubuntu:24.04
 
-# Update and install core dependencies
-RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends \
-  vim \
-  openssl \
-  ca-certificates \
-  curl \
-  wget \
-  sudo \
-  bash \
-  net-tools \
-  python3 \
-  python3-pip \
-  python3-dev \
-  python3-wheel \
-  python3-venv \
-  locales \
-  libpq5 \
-  sqlite3 \
-  psmisc \
-  build-essential \
-  python-is-python3 \
-  unzip \
-  git \
-  gnupg \
-  gpg \
-  jq \
-  make \
-  gcc \
-  g++ \
-  iverilog \
-  verilator
+# uv (pinned) for both the substrate venv and the env package.
+COPY --from=ghcr.io/astral-sh/uv:0.8.24 /uv /uvx /usr/local/bin/
 
-RUN update-ca-certificates
+ENV DEBIAN_FRONTEND=noninteractive
+# python3-dev provides Python.h so cocotb's C++ extension builds; use the system
+# interpreter for uv so the compiled extension matches the headers we install.
+ENV UV_PYTHON_PREFERENCE=only-system
+# NOTE: bubblewrap is deliberately NOT installed. HUD's platform kernel disallows
+# unprivileged namespace creation, so if `bwrap` is on PATH the Workspace wraps every
+# agent command in it and they all fail ("No permissions to create new namespace").
+# Without bwrap the Workspace runs commands directly (cwd=workspace), which is what we
+# want on the platform. Per-rollout fresh containers provide cross-rollout isolation.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git \
+      ca-certificates \
+      build-essential \
+      python3 \
+      python3-dev \
+      python3-venv \
+      iverilog \
+      verilator \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN pip install uv --break-system-packages
+RUN git config --global user.email "agent@example.com" \
+    && git config --global user.name "agent"
 
-WORKDIR /
-
-# Install nvm for ubuntu user
-USER ubuntu
-ENV HOME=/home/ubuntu
-
-# configure git
-RUN git config --global user.email "agent@example.com"
-RUN git config --global user.name "mr agent"
-
-
-# ========================= PROJECT SETUP =========================
-# CUSTOMIZE THIS SECTION FOR YOUR PROJECT
-# This example shows Node.js/TypeScript setup. Adapt for your tech stack.
-# Examples: Python (pip/poetry), Java (Maven/Gradle), C++ (CMake), Rust (Cargo)
-# =================================================================
-
-
+# ============================ SUBSTRATE (oracle) ============================
+# Full clone (all branches incl. the hidden _test / reference _golden) + a prebuilt
+# venv. This dir is NEVER mounted into the agent's workspace, and grading runs in a
+# throwaway copy. The shell is unsandboxed (no bwrap, see top of file), so isolation
+# here is cross-rollout (fresh container per rollout), NOT in-container; use a
+# private/transformed substrate for a rigorous eval.
 ARG FOLDER_NAME=example-verilog-codebase
+ARG REPO_URL=https://github.com/hud-evals/example-verilog-codebase
 ENV FOLDER_NAME=${FOLDER_NAME}
+ENV REPO_URL=${REPO_URL}
+ENV ORACLE_DIR=/opt/oracle/${FOLDER_NAME}
+ENV WORKSPACE_DIR=/workspace
+ENV PATCHES_DIR=/opt/patches
 
-# Validate FOLDER_NAME is set
-RUN test -n "$FOLDER_NAME" || (echo "ERROR: FOLDER_NAME not set" && exit 1)
+RUN git clone "${REPO_URL}" "${ORACLE_DIR}" \
+    && git config --global --add safe.directory "${ORACLE_DIR}"
 
-ENV random1=random1
-RUN git clone https://github.com/hud-evals/example-verilog-codebase /home/ubuntu/${FOLDER_NAME}
+# Prebuild the substrate venv (cocotb, pytest) so the grader runs offline via
+# `uv run --no-sync`. Deps are not vendored, so this needs network at build time only.
+RUN cd "${ORACLE_DIR}" && uv sync
 
-# Validate project directory exists after clone
-RUN test -d "/home/ubuntu/$FOLDER_NAME" || (echo "ERROR: Project directory /home/ubuntu/$FOLDER_NAME does not exist" && exit 1)
+RUN mkdir -p "${WORKSPACE_DIR}" "${PATCHES_DIR}"
 
-WORKDIR /home/ubuntu/${FOLDER_NAME}
+# ============================ ENV PACKAGE ============================
+# The v6 control channel: hud + the Environment defined in env.py.
+WORKDIR /app
+COPY pyproject.toml uv.lock README.md env.py tasks.py ./
+RUN uv sync --frozen --no-dev 2>/dev/null || uv sync --no-dev
 
-# Fetch all branches so patches can be generated at runtime
-RUN git fetch --all
-
-# build the project
-RUN uv sync
-
-# Protect .git from agent access (agent runs as ubuntu/uid 1000, MCP server runs as root)
-# This allows setup_task to:
-# 1. Generate patches at runtime (base->test, base->golden)
-# 2. Checkout the baseline branch
-# The agent cannot access git history or checkout solution branches
-USER root
-RUN mkdir -p /home/root/patches && \
-    chown -R root:root /home/ubuntu/${FOLDER_NAME}/.git && \
-    chmod -R 700 /home/ubuntu/${FOLDER_NAME}/.git && \
-    git config --global --add safe.directory /home/ubuntu/${FOLDER_NAME}
-USER ubuntu
-
-# Set environment variables
-ENV HOME=/home/ubuntu \
-    DEBIAN_FRONTEND=noninteractive
-
-USER root
-
-# Postgres config:
-ENV POSTGRES_USER=ubuntu
-ENV POSTGRES_PASSWORD=ubuntu
-ENV POSTGRES_DB=ubuntu
-
-# ================================ hud evals mcp server setup ================================================
-FROM setup AS runtime
-
-# prepare for the hud evals mcp server
-
-# Copy source and config needed for the editable install
-COPY ./pyproject.toml /mcp_server/pyproject.toml
-COPY ./README.md /mcp_server/README.md
-COPY ./env.py /mcp_server/env.py
-COPY ./tasks.py /mcp_server/tasks.py
-WORKDIR /mcp_server
-
-ENV RUST_LOG=warn
-RUN uv venv && . .venv/bin/activate && uv sync --no-install-project --extra dev && uv pip install -e .
-ENV PYTHONPATH=/mcp_server/.venv/lib/python3.12/site-packages:/mcp_server
-ENV PATH=/mcp_server/.venv/bin:$PATH
-
-RUN mkdir -p /home/ubuntu/Downloads
-RUN chmod 777 /home/ubuntu/Downloads
-
-RUN chmod 777 /root
-
-EXPOSE 3000
-
-ARG HINTS="none"
-ENV HINTS=$HINTS
-
-# PROBLEM_ID is set at runtime via scenario args, not at build time
-# It selects which patches to use from /home/root/patches/{problem_id}/
-ENV PROBLEM_ID=""
-ENV PATCHES_DIR=/home/root/patches
-
-# Validate PATCHES_DIR is set
-RUN test -n "$PATCHES_DIR" || (echo "ERROR: PATCHES_DIR not set" && exit 1)
-
-# Run the HUD MCP server
-CMD ["hud", "dev", "env:env", "--stdio"]
+# Serve the Environment's tcp control channel. `env:env` (not tasks:env) makes the
+# deploy-time env-name resolver read env.py's Environment(name=...) deterministically.
+# --no-sync: the venv is already baked (line above); never re-resolve/fetch at boot
+# (would hang on no-egress infra).
+EXPOSE 8765
+CMD ["uv", "run", "--no-sync", "python", "-m", "hud", "serve", "env:env", "--host", "0.0.0.0", "--port", "8765"]
