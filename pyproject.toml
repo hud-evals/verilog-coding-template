@@ -6,7 +6,7 @@ readme = "README.md"
 # v6 SDK caps Python at <3.13; without this uv may pick 3.13 and fail to resolve.
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    "hud-python[agents]>=0.6.0",
+    "hud-python[agents]>=0.6.5",
 ]
 
 [project.optional-dependencies]

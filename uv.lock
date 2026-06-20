@@ -491,7 +491,7 @@ wheels = [
 
 [[package]]
 name = "hud-python"
-version = "0.6.0"
+version = "0.6.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anthropic" },
@@ -512,9 +512,9 @@ dependencies = [
     { name = "typer" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fb/57/653f0537458762113233a7a679f9e2b9600ba16281869541cd87e86d84f8/hud_python-0.6.0.tar.gz", hash = "sha256:3a43a15be1751256e050a786340ad7c41a3d661ea3c70702dabb91ea79b0bf92", size = 307406, upload-time = "2026-06-19T22:04:00.142Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/d3/8cf07ed118a28f25be5530e8324b63b1bc404eb8d22b23dcb08aeb60a9c9/hud_python-0.6.5.tar.gz", hash = "sha256:c3178cc0455b4e4d1cf9d350dfb9bc9c3c8b89d35ee5b3683fcaee692d21a6cd", size = 333591, upload-time = "2026-06-20T17:29:18.771Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/dc/0c66ac9fb87b23061d390bae1eb5de94c6cfeb168a0705d19453029329cc/hud_python-0.6.0-py3-none-any.whl", hash = "sha256:b4a3ee798cd1e32a58a07fa0b72a63ee718c1f398c18456a354266a2867c61cc", size = 403070, upload-time = "2026-06-19T22:03:58.714Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/1e/b79638e013a1e2ed502bbb6071f660d8b334ffb453c9f8e06a18e3b1c0ed/hud_python-0.6.5-py3-none-any.whl", hash = "sha256:3dee196221b473ca6119a947e0086157bd8821d61d47b4bf10a25771f4b07a5f", size = 430700, upload-time = "2026-06-20T17:29:17.472Z" },
 ]
 
 [[package]]
@@ -1514,7 +1514,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "hud-python", extras = ["agents"], specifier = ">=0.6.0" },
+    { name = "hud-python", extras = ["agents"], specifier = ">=0.6.5" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.1.1" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11.2" },
