@@ -25,6 +25,7 @@ ENV/
 .idea/
 *.swp
 .opencode/
+.claude/
 
 # Env / secrets
 .env
